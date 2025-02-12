@@ -11,15 +11,16 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         // $product = new Product();
-        // $manager->persist($product);
-
+        
+        
         for ($i = 0; $i < 20; $i++){
-            $animal = new Animal();
+            $animal = new Animal(); // it means that in with iteration it will create a new animal 
             $animal->setName('animal'.$i);
             $animal->setType('type'.$i);
-          //  $animal->setAnimalDiet('')
+            $animal->setAnimalDiet('herbivore');
+            $manager->persist($animal);
         }
-
+        
         $manager->flush();
     }
 }
