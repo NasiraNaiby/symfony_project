@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Pigeons{% endblock %}
+
+{% block body %}
+    <h1>Create new Pigeons</h1>
+
+    {{ include('pigeons/_form.html.twig') }}
+
+    <a href="{{ path('app_pigeons_index') }}">back to list</a>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Pigeons{% endblock %}
+
+{% block body %}
+    <h1>Edit Pigeons</h1>
+
+    {{ include('pigeons/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_pigeons_index') }}">back to list</a>
+
+    {{ include('pigeons/_delete_form.html.twig') }}
+{% endblock %}

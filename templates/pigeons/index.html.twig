@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pigeons index{% endblock %}
+
+{% block body %}
+    <h1>Pigeons index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Color</th>
+                <th>Img_src</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for pigeon in pigeons %}
+            <tr>
+                <td>{{ pigeon.id }}</td>
+                <td>{{ pigeon.name }}</td>
+                <td>{{ pigeon.color }}</td>
+                <td>{{ pigeon.imgSrc }}</td>
+                <td>
+                    <a href="{{ path('app_pigeons_show', {'id': pigeon.id}) }}">show</a>
+                    <a href="{{ path('app_pigeons_edit', {'id': pigeon.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_pigeons_new') }}">Create new</a>
+{% endblock %}
