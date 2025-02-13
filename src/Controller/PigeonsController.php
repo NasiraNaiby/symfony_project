@@ -14,6 +14,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\Filesystem\Filesystem;
+
 
 #[Route('/pigeons')]
 final class PigeonsController extends AbstractController
@@ -78,27 +80,58 @@ final class PigeonsController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_pigeons_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Pigeons $pigeon, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Pigeons $pigeon, SluggerInterface $slugger, #[Autowire('%kernel.project_dir%/public/uploads/')] string $imagesDirectory, EntityManagerInterface $entityManager, Filesystem $filesystem): Response
     {
         $form = $this->createForm(PigeonsType::class, $pigeon);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $imageFile */
+            $imageFile = $form->get('image')->getData();
+
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move($imagesDirectory, $newFilename);
+
+                    if ($pigeon->getImgSrc()) {
+                        $oldImagePath = $imagesDirectory . '/' . $pigeon->getImgSrc();
+                        if ($filesystem->exists($oldImagePath)) {
+                            $filesystem->remove($oldImagePath);
+                        }
+                    }
+                } catch (FileException $e) {
+                
+                }
+
+                $pigeon->setImgSrc($newFilename);
+            }
+            
             $entityManager->flush();
 
             return $this->redirectToRoute('app_pigeons_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('pigeons/edit.html.twig', [
-            'pigeon' => $pigeon,
-            'form' => $form,
-        ]);
-    }
+    return $this->render('pigeons/edit.html.twig', [
+        'pigeon' => $pigeon,
+        'form' => $form,
+    ]);
+}
+
 
     #[Route('/{id}', name: 'app_pigeons_delete', methods: ['POST'])]
-    public function delete(Request $request, Pigeons $pigeon, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Pigeons $pigeon, EntityManagerInterface $entityManager, #[Autowire('%kernel.project_dir%/public/uploads/')] string $imagesDirectory, Filesystem $filesystem): Response
     {
         if ($this->isCsrfTokenValid('delete'.$pigeon->getId(), $request->request->get('_token'))) {
+            if ($pigeon->getImgSrc()) {
+                $imagePath = $imagesDirectory . '/' . $pigeon->getImgSrc();
+                if ($filesystem->exists($imagePath)) {
+                    $filesystem->remove($imagePath);
+                }
+            }
             $entityManager->remove($pigeon);
             $entityManager->flush();
         }

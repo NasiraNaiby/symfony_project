@@ -18,9 +18,15 @@ class Pigeons
 
     #[ORM\Column(length: 20)]
     private ?string $color = null;
- 
+
     #[ORM\Column(length: 255)]
     private ?string $img_src = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Animal")
+     * @ORM\JoinColumn(name="type_name", referencedColumnName="id", nullable=false)
+     */
+    private $type_name;
 
     public function getId(): ?int
     {
@@ -35,7 +41,6 @@ class Pigeons
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -47,7 +52,6 @@ class Pigeons
     public function setColor(string $color): static
     {
         $this->color = $color;
-
         return $this;
     }
 
@@ -59,7 +63,17 @@ class Pigeons
     public function setImgSrc(string $img_src): static
     {
         $this->img_src = $img_src;
+        return $this;
+    }
 
+    public function getTypeName(): ?Animal
+    {
+        return $this->type_name;
+    }
+
+    public function setTypeName(Animal $type_name): static
+    {
+        $this->type_name = $type_name;
         return $this;
     }
 }
