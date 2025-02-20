@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ asset('node_modules/bootstrap/dist/css/bootstrap.css') }}">
+    <title>Document</title>
+</head>
+<body>
+    <h1>helloe {{ name | capitalize }}  {{ lastname | upper }}</h1>
+    <img src="{{ asset('assets/image/') ~ path | defaultImage }}" alt=""> 
+     <!-- here we have created our own twig filter and function(defaultImage) that do a specif job  -->
+        
+
+
+</body>
+</html>

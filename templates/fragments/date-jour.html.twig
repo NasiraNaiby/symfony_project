@@ -1,0 +1,11 @@
+<div class="alert alert-info">
+    bonjour {{ 'now' | date('Y-m-d H:i:s') }}
+</div>
+
+<div class="alert alert-info">
+   absolute url to the page users {{ url('app_user') }}
+</div>
+
+<div class="alert alert-info">
+    <a href=" {{ path('app_tab', {nb : 8 }) }}">the  relative  link to the page tab </a>
+ </div>

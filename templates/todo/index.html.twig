@@ -1,0 +1,34 @@
+{% extends "template.html.twig" %}
+
+{% block body %}
+
+    <h1>hello today is {{ 'now' | date('m/d/Y') }}</h1>
+    <h1> 1 month before today was {{ 'now - 1 month' | date('m/d/Y') }}</h1>
+    <h1> today date in alphabet format {{ 'now' | date('l, F jS, Y') }} </h1>
+    <h1> random value {{ random(5) }} </h1>
+
+    {% for message in app.session.flashbag.get('info') %}
+    <div class='alert alert-info'>
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% for message in app.session.flashbag.get('success') %}
+    <div class='alert alert-info'>
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% for message in app.session.flashbag.get('error') %}
+    <div class='alert alert-danger'>
+        {{ message }}
+    </div>
+    {% endfor %}
+ <h1>Todo List</h1>
+    <ol class='list-group'>
+       
+        {% for name, content in app.session.get('todos') %}
+        <li class='list-group-item'> {{ name }} : {{ content }} </li>
+        {% endfor %}
+    </ol>
+
+   
+{% endblock %}

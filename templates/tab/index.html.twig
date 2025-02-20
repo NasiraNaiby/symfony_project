@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <table>
+        {% for note in notes %}
+        <tr>
+            <td>{{ note }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div>
+        <p>Number of notes : {{ notes | length }}</p>
+        <p>Minimum of the number : {{  min(notes) }}</p>
+        <p>Maximum of the number  : {{ max(notes) }}</p>
+    </div>
+</body>
+</html>

@@ -28,8 +28,7 @@ class Animal
      */
     private $type_id;
 
-    #[ORM\ManyToOne(inversedBy: 'animal_id')]
-    private ?Reptiles $reptiles = null;
+  
 
     public function getId(): ?int
     {
@@ -80,15 +79,4 @@ class Animal
         return $this;
     }
 
-    public function getReptiles(): ?Reptiles
-    {
-        return $this->reptiles;
-    }
-
-    public function setReptiles(?Reptiles $reptiles): static
-    {
-        $this->reptiles = $reptiles;
-
-        return $this;
-    }
 }

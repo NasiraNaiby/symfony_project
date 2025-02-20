@@ -1,0 +1,38 @@
+{% extends 'template.html.twig' %}
+
+{% block title %}Hello PersonneController!{% endblock %}
+
+{% block body %}
+<div class="row">
+   {% for personnes in personne %}
+   <div class="card" style="width: 18rem;">
+   <div class="card-body">
+    <h5 class="card-title">{{ personnes.name }}</h5>
+    <h6 class="card-subtitle mb-2 text-muted">{{ personnes.firstname }} {{ personnes.name }}</h6>
+    <p class="card-text">Age: {{ personnes.age }}</p>
+    <a href="{{ path('app_personne_detail', { id: personnes.id }) }}" class="card-link">Detail</a>
+    <a href="#" class="card-link">Another link</a>
+  </div>
+</div>
+  {% endfor %}
+
+  </div>
+  {% set isPaginated = isPaginated|default(true) %}
+  {% if isPaginated %}
+   <div class="row mt-3">
+    <nav aria-label="col Page navigation example">
+        <ul class="pagination">
+        {% if page > 1 %}
+        <li class="page-item"><a class="page-link" href="{{ path('app_personne_all', { page: page - 1, nbre: nbre }) }}">Previous</a></li>
+        {% endif %}
+        {% for i in range(1, nbrepage) %}
+        <li class="page-item"><a class="page-link" href="{{ path('app_personne_all', { page: i, nbre: nbre }) }}">{{ i }}</a></li>
+        {% endfor %}
+        {% if page < nbrepage %}
+        <li class="page-item"><a class="page-link" href="{{ path('app_personne_all', { page: page + 1, nbre: nbre }) }}">Next</a></li>
+        {% endif %}
+        </ul>
+    </nav>
+   </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'heritage.html.twig' %}
+
+{% block titleofthedocument %} My new title {% endblock %}
+
+{% block bodyoftheDocument %} 
+
+this is the new conetnt  
+
+
+  <!--       here we inheret the parent content  -->
+<br>
+{{
+    parent()  
+}}
+
+<div>
+    <h1>j'adore twig</h1>
+</div>
+{% endblock %}
+
