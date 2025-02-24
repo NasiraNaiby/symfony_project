@@ -3,8 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Form\PersonneType;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Repository\PersonneRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -21,18 +26,55 @@ final class PersonneController extends AbstractController
             'personne'=>$personne
         ]);
     }
-    #[Route('/add', name: 'app_personne_add')]
-    public function addPersonne(ManagerRegistry $doctrine): Response
-    {
-        // $entitymanager = $doctrine->getManager();
-        // $personne = new Personne();
-        // $personne->setFirstname(firstname:'Nasira');
-        // $personne->setName(name:'Naeibi');
-        // $personne->setAge(age:'28');
 
-        // $entitymanager->persist($personne); it will add the insertion operation 
+    #[Route('/personne/all/age/{ageMin}/{ageMax}', name:'app_personne_age')]
+    public function personneByAge(ManagerRegistry $doctrine, $ageMin, $ageMax): Response
+    {
+         $repository  = $doctrine->getRepository(persistentObject:Personne::class);
+         $personne = $repository->findPersonneByAgeInterval($ageMin, $ageMax);
         // $entitymanager->flush();
-        return $this->render('personne/index.html.twig');
+        return $this->render('personne/index.html.twig', [
+            'personne'=>$personne
+            
+        ]);
+    }
+    #[Route('/personne/state/age/{ageMin}/{ageMax}', name:'app_personne_age_state')]
+    public function statesPersonneByAge(ManagerRegistry $doctrine, $ageMin, $ageMax): Response
+    {
+        $repository = $doctrine->getRepository(Personne::class);
+        $state = $repository->statesPersonneByAgeInterval($ageMin, $ageMax);
+    
+        $ageMoyen = $state[0]['ageMoyen'] ?? 'N/A';
+        $nombrePerson = $state[0]['nombrePerson'] ?? 'N/A';
+    
+        return $this->render('state.html.twig', [
+            'ageMoyen' => $ageMoyen,
+            'nombrePerson' => $nombrePerson,
+            'ageMin' => $ageMin,
+            'ageMax' => $ageMax
+        ]);
+    }
+    
+    
+    #[Route('/personne/add', name: 'app_personne_add')]
+    public function addPersonne(ManagerRegistry $doctrine, Request $request): Response
+    {
+        
+        $Personne = new Personne();
+        $form = $this->createForm(PersonneType::class, $Personne);
+        $form->remove('createdAt');
+        $form->remove('updateAt');
+        $form->handleRequest($request);    //it will take all the data send by the form make ready for submission
+        if($form->isSubmitted()){
+            $entitymanager = $doctrine->getManager();
+            $entitymanager->persist($Personne);
+            $entitymanager->flush();
+            $this->addFlash("succes", "the person is added ");
+            return $this->redirectToRoute(route:'app_personne_all');
+        }else{
+            $this->addFlash("error", "the person is not  added ");
+        }
+        return $this->render('personne/add.html.twig',['form'=>$form->createView()]);
     }
 
     #[Route('/personne/{id<\d+>}', name:'app_personne_detail')]
@@ -70,4 +112,40 @@ final class PersonneController extends AbstractController
             'nbre' => $nbre, 
         ]);
     }
+
+    #[Route('/personne/delete/{id}', name: 'app_personne_delete')]
+    public function delete(Personne $personne = null, ManagerRegistry $doctrine): RedirectResponse
+    {
+        //recuperér la personne 
+        if($personne){
+            $manager = $doctrine->getManager();
+            $manager->remove($personne);
+            $manager->flush();
+            $this->addFlash(type:'success', message:'La personne a été suprime!!');
+        } else {
+            $this->addFlash(type:'error', message:'La personne ne existe pas !!');
+        }
+        return $this->redirectToRoute(route:'app_personne_all');
+    }
+
+
+    #[Route('/personne/update/{id}/{name}/{firstname}/{age}', name: 'app_personne_update')]
+    public function updatePersonne(Personne $personne = null, ManagerRegistry $doctrine, $name, $firstname, $age): RedirectResponse
+    {
+        //recuperér la personne 
+        if($personne){
+            $personne->setName($name);
+            $personne->setFirstname($firstname);
+            $personne->setAge($age);
+            $manager = $doctrine->getManager();
+            $manager->persist($personne);
+            $manager->flush();
+            $this->addFlash(type:'success', message:'La personne a été mise a jour!!');
+        } else {
+            $this->addFlash(type:'error', message:'La personne ne existe pas !!');
+        }
+        return $this->redirectToRoute(route:'app_personne_all');
+    }
+    
+    
 }

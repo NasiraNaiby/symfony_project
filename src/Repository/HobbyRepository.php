@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Persons;
+use App\Entity\Hobby;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Persons>
+ * @extends ServiceEntityRepository<Hobby>
  */
-class PersonsRepository extends ServiceEntityRepository
+class HobbyRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-      //  parent::__construct($registry, entityClass:Persons::class);
+        parent::__construct($registry, Hobby::class);
     }
 
     //    /**
-    //     * @return Persons[] Returns an array of Persons objects
+    //     * @return Hobby[] Returns an array of Hobby objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
+    //        return $this->createQueryBuilder('h')
+    //            ->andWhere('h.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
+    //            ->orderBy('h.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Persons
+    //    public function findOneBySomeField($value): ?Hobby
     //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
+    //        return $this->createQueryBuilder('h')
+    //            ->andWhere('h.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()
