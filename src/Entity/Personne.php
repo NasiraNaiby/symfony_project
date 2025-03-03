@@ -3,11 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\PersonneRepository;
-use App\Traits\TimeStampTrait;
+use App\Repository\Traits\TimeStampTrait;  
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PersonneRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -24,6 +25,8 @@ class Personne
     private ?string $name = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 4, minMessage:"Veuiller avoir au moins 4 charactére ")]
     private ?string $firstname = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
@@ -40,6 +43,12 @@ class Personne
 
     #[ORM\ManyToOne(inversedBy: 'personnes')]
     private ?Job $job = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $image = null;
+
+    #[ORM\ManyToOne(inversedBy: 'personnes')]
+    private ?User $createdBy = null;
 
     
 
@@ -135,6 +144,30 @@ class Personne
     public function setJob(?Job $job): static
     {
         $this->job = $job;
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $createdBy): static
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }

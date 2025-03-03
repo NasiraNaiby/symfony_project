@@ -7,4 +7,8 @@
     <h1 class="text-success">Your search results here </h1>
     <h6 class="text-primary">{{ personne.firstname }} {{ personne.name }} {{ personne.age }}</h6>
 
+   {% if app.user %}
+     <p>Created By: {{ app.user.email }} </p>
+   {% endif %}
+
 {% endblock %}

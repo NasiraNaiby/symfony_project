@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Repository\Traits;
 use Doctrine\ORM\Mapping as ORM;
 
 trait TimeStampTrait{
@@ -14,12 +14,12 @@ trait TimeStampTrait{
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTime $updateAt = null;
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTime
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(?\DateTime $createdAt): static
     {
         $this->createdAt = $createdAt;
 

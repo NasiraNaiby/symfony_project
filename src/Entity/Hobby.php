@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\HobbyRepository;
-use App\Traits\TimeStampTrait;
+use App\Repository\Traits\TimeStampTrait;  
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: HobbyRepository::class)]

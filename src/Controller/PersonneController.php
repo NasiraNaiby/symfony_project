@@ -7,14 +7,50 @@ use App\Form\PersonneType;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Repository\PersonneRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Service\Helpers;
+use App\Service\MailerService;
+use App\Service\PdfService;
+use App\Service\UploaderService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mime\Message;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 final class PersonneController extends AbstractController
 {
+    public function __construct(private LoggerInterface $logger, private Helpers $helper){ } // here we have injeted a dependency of logger interface inside of our class
+
+    // #[Route('/test-email', name: 'test_email')]
+    // public function testEmail(MailerInterface $mailer)
+    // {
+    //     $email = (new Email())
+    //         ->from('nasira3795@gmail.com')
+    //         ->to('nasira3795@gmail.com')
+    //         ->subject('Test Email')
+    //         ->text('This is a test email.');
+
+    //     $mailer->send($email);
+
+    //     return new Response('Test email sent.');
+    // }
+    
+    #[Route('/pdf/{id}', name:'app_personne_pdf')]
+    public function generatePDFperson(Personne $personne = null, PdfService $pdf )
+    {
+        $html = $this->render('detail.html.twig', ['personne' => $personne]);
+        $pdf->showPdfFile($html);
+        
+    }
+
+
 
     #[Route('/personne', name:'app_personne')]
     public function index(ManagerRegistry $doctrine): Response
@@ -30,6 +66,7 @@ final class PersonneController extends AbstractController
     #[Route('/personne/all/age/{ageMin}/{ageMax}', name:'app_personne_age')]
     public function personneByAge(ManagerRegistry $doctrine, $ageMin, $ageMax): Response
     {
+        
          $repository  = $doctrine->getRepository(persistentObject:Personne::class);
          $personne = $repository->findPersonneByAgeInterval($ageMin, $ageMax);
         // $entitymanager->flush();
@@ -57,26 +94,67 @@ final class PersonneController extends AbstractController
     
     
     #[Route('/personne/add', name: 'app_personne_add')]
-    public function addPersonne(ManagerRegistry $doctrine, Request $request): Response
+    public function addPersonne(ManagerRegistry $doctrine, Request $request, SluggerInterface $slugger,
+    #[Autowire('%kernel.project_dir%/public/uploads')] string $imagedirectory)
     {
         
-        $Personne = new Personne();
-        $form = $this->createForm(PersonneType::class, $Personne);
-        $form->remove('createdAt');
-        $form->remove('updateAt');
-        $form->handleRequest($request);    //it will take all the data send by the form make ready for submission
-        if($form->isSubmitted()){
-            $entitymanager = $doctrine->getManager();
-            $entitymanager->persist($Personne);
-            $entitymanager->flush();
-            $this->addFlash("succes", "the person is added ");
-            return $this->redirectToRoute(route:'app_personne_all');
-        }else{
-            $this->addFlash("error", "the person is not  added ");
-        }
-        return $this->render('personne/add.html.twig',['form'=>$form->createView()]);
+        
     }
 
+
+    #[Route('/personne/edit/{id?0}', name: 'app_personne_edit')]
+    public function editPersonne(
+        Personne $personne = null, 
+        ManagerRegistry $doctrine, 
+        Request $request,
+        UploaderService $uploaderService,
+        
+        MailerService $mailer
+    ): Response {
+        $new = false;
+    
+        if (!$personne) {
+            $new = true;
+            $personne = new Personne();
+        }
+    
+        $form = $this->createForm(PersonneType::class, $personne);
+        $form->remove('createdAt');
+        $form->remove('updateAt');
+        $form->handleRequest($request);    
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager = $doctrine->getManager();
+            $photo = $form->get('photo')->getData();
+    
+            if ($photo) {
+                $directory = $this->getParameter('kernel.project_dir') . '/public/uploads';
+                $personne->setImage($uploaderService->uploadFile($photo, $directory));
+            }
+    
+            if ($new) {
+                $message = "la personne a été ajoutée";
+                $personne->setCreatedBy($this->getUser());
+            } else {
+                $message = "la personne a été mise à jour";
+            }
+    
+            $entityManager->persist($personne);
+            $entityManager->flush();
+
+            $mailMessage = $personne->getFirstname().' '.$personne->getName().' '.$message;
+    
+            $this->addFlash('success', $personne->getName() . ' ' . $message);
+    
+            // Injection de service
+            $mailer->sendEmail(content:$mailMessage);
+    
+            return $this->redirectToRoute('app_personne_all');
+        }
+    
+        return $this->render('personne/add.html.twig', ['form' => $form->createView()]);
+    }
+    
     #[Route('/personne/{id<\d+>}', name:'app_personne_detail')]
     public function detail(ManagerRegistry $doctrine, $id): Response
     {
@@ -93,8 +171,11 @@ final class PersonneController extends AbstractController
 
 
     #[Route('/personne/all/{page?1}/{nbre?12}', name: 'app_personne_all')]
-    public function indexAll(ManagerRegistry $doctrine, int $nbre, int $page): Response
+    public function indexAll( ManagerRegistry $doctrine, int $nbre, int $page ): Response
     {
+
+        echo($this->helper->sayCC());
+        
         $repository = $doctrine->getRepository(persistentObject:Personne::class);
         
         // Ensure the count method is supported and used correctly

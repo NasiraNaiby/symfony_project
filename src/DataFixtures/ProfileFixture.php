@@ -10,27 +10,26 @@ class ProfileFixture extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $profile = new Profile();
-        $profile->setRs('Facebook');
-        $profile->setUrl('https://www.facebook.com/wyz');
+        $baseProfiles = [
+            ['rs' => 'Facebook', 'url' => 'https://www.facebook.com/wyz'],
+            ['rs' => 'Twitter', 'url' => 'https://www.twitter.com/wyz'],
+            ['rs' => 'LinkedIn', 'url' => 'https://www.linkedin.com/vsdvsdv'],
+            ['rs' => 'GitHub', 'url' => 'https://www.github.com/wyz'],
+        ];
         
-        $profile1 = new Profile();
-        $profile1->setRs('twitter');
-        $profile1->setUrl('https://www.twitter.com/wyz');
-
-        $profile2 = new Profile();
-        $profile2->setRs('linkden');
-        $profile2->setUrl('https://www.linkden.com/wyz');
-
-        $profile3 = new Profile();
-        $profile3->setRs('github');
-        $profile3->setUrl('https://www.github.com/wyz');
+        $uniqueIdentifier = 0;
+        for ($i = 0; $i < 25; $i++) {
+            foreach ($baseProfiles as $profileData) {
+                $profile = new Profile();
+                $profile->setRs($profileData['rs']);
+                $profile->setUrl($profileData['url'] . $uniqueIdentifier);  // Append unique identifier to the URL
+                $manager->persist($profile);
+                $uniqueIdentifier++;
+            }
+        }
         
-        $manager->persist($profile);
-        $manager->persist($profile1);
-        $manager->persist($profile2);
-        $manager->persist($profile3);
         $manager->flush();
+        
             
 
     }
