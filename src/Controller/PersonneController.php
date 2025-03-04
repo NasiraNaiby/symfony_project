@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Event\AddPersonneEvent;
+use App\Event\ListAllPersonnesEvent;
 use App\Form\PersonneType;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -13,6 +15,8 @@ use App\Service\Helpers;
 use App\Service\MailerService;
 use App\Service\PdfService;
 use App\Service\UploaderService;
+use Doctrine\Migrations\EventDispatcher;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +30,14 @@ use Symfony\Component\Mime\Email;
 
 final class PersonneController extends AbstractController
 {
-    public function __construct(private LoggerInterface $logger, private Helpers $helper){ } // here we have injeted a dependency of logger interface inside of our class
+    private $dispatcher;
+    private $logger;
+
+    public function __construct(EventDispatcherInterface $dispatcher, LoggerInterface $logger)
+    {
+        $this->dispatcher = $dispatcher;
+        $this->logger = $logger;
+    } // here we have injeted a dependency of logger interface inside of our class
 
     // #[Route('/test-email', name: 'test_email')]
     // public function testEmail(MailerInterface $mailer)
@@ -108,52 +119,57 @@ final class PersonneController extends AbstractController
         ManagerRegistry $doctrine, 
         Request $request,
         UploaderService $uploaderService,
-        
         MailerService $mailer
     ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $new = false;
-    
+
         if (!$personne) {
             $new = true;
             $personne = new Personne();
         }
-    
+
         $form = $this->createForm(PersonneType::class, $personne);
         $form->remove('createdAt');
         $form->remove('updateAt');
         $form->handleRequest($request);    
-    
+
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $doctrine->getManager();
             $photo = $form->get('photo')->getData();
-    
+
             if ($photo) {
                 $directory = $this->getParameter('kernel.project_dir') . '/public/uploads';
                 $personne->setImage($uploaderService->uploadFile($photo, $directory));
             }
-    
+
             if ($new) {
                 $message = "la personne a été ajoutée";
                 $personne->setCreatedBy($this->getUser());
             } else {
                 $message = "la personne a été mise à jour";
             }
-    
+
             $entityManager->persist($personne);
             $entityManager->flush();
 
+            if ($new) {
+                $addPersonneEvent = new AddPersonneEvent($personne);
+                $this->logger->info('Dispatching AddPersonneEvent');
+                $this->dispatcher->dispatch($addPersonneEvent, AddPersonneEvent::ADD_PERSONNE_EVENT);
+            }
+
             $mailMessage = $personne->getFirstname().' '.$personne->getName().' '.$message;
-    
             $this->addFlash('success', $personne->getName() . ' ' . $message);
-    
-            // Injection de service
+
             $mailer->sendEmail(content:$mailMessage);
-    
+            
             return $this->redirectToRoute('app_personne_all');
         }
-    
+
         return $this->render('personne/add.html.twig', ['form' => $form->createView()]);
     }
+
     
     #[Route('/personne/{id<\d+>}', name:'app_personne_detail')]
     public function detail(ManagerRegistry $doctrine, $id): Response
@@ -174,7 +190,7 @@ final class PersonneController extends AbstractController
     public function indexAll( ManagerRegistry $doctrine, int $nbre, int $page ): Response
     {
 
-        echo($this->helper->sayCC());
+        //echo($this->helper->sayCC());
         
         $repository = $doctrine->getRepository(persistentObject:Personne::class);
         

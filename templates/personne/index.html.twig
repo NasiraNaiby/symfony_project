@@ -20,9 +20,11 @@
     <h6 class="card-subtitle mb-2 text-muted">{{ personnes.firstname }} {{ personnes.name }}</h6>
     <p class="card-text">Age: {{ personnes.age }}</p>
     <a href="{{ path('app_personne_detail', { id: personnes.id }) }}" class="card-link">Detail</a>
+    {% if is_granted('ROLE_ADMIN') %}
     <a href="{{ path('app_personne_delete', { id: personnes.id }) }}" class="card-link text-danger"><i class="fas fa-trash"></i>    </a>
-    <a href="{{ path('app_personne_edit', { id: personnes.id }) }}" class="card-link text-warning"><i class="fas fa-edit"></i>
-    </a>
+    <a href="{{ path('app_personne_edit', { id: personnes.id }) }}" class="card-link text-warning"><i class="fas fa-edit"></i></a>
+    {% endif %}
+    
   </div>
 </div>
   {% endfor %}
